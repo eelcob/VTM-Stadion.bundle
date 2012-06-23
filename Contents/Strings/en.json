@@ -1,11 +1,11 @@
 {
-    "Title": "VTM-Stadion",
+	"Title": "VTM-Stadion",
 	"Club": "Club",
 	"Competition": "Competitie",
-	"Round": "Speelronde ",
-    "ClipError": "Couldn't add clip",
-	"WebError": "Cannot reach website ",
-	"More": "More Clips ",
-	"NoVideo: "No Videos",
-    "ImageError": "No image found"
+	"Round": "Speelronde",
+	"ClipError": "Couldn't add clip",
+	"WebError": "Cannot reach website",
+	"More": "More Clips",
+	"NoVideo": "No Videos",
+	"ImageError": "No image found"
 }

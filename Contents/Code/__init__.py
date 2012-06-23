@@ -13,10 +13,10 @@ VIDEOURL_REGEX = Regex('<a href="/(.*?)" class="videozone-item">')
 
 ## TODO: 
 # - Thumbs fixen, almost there
-# - Clip width and height meegeven via servicecode
 # - cachtime increase nadat images shit gefixed is
 # - image regex zonder http maken zodat replace \/ ook die fixt, scheelt 1 regel code
 # - dubbelcheck of functie more niet vervangen kan worden door videos
+# - Check comments voor fixes
 ####################################################################################################
 def Start():
 
@@ -97,7 +97,7 @@ def getSpeeldag():
 			teamid = ""
 			competitie = ""
 			speelronde = dag
-			title= L('Round') + dag
+			title = L('Round') + " " + dag
 		
 			oc.add(DirectoryObject(key = Callback(getVideo, teamid=teamid, speelronde=speelronde, competitie=competitie), title=title))
 	except:
