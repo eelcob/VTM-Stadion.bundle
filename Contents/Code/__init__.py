@@ -9,10 +9,8 @@ stadionurl = 'http://stadion.vtm.be/'
 IMAGE_REGEX =  Regex('imageUrl: \"(.*?)"')
 TITLES_REGEX = Regex('title: \'(.*?)\'')
 VIDEOURL_REGEX = Regex('<a href="/(.*?)" class="videozone-item">')
+PAGES_REGEX = Regex('<li class="pager-next"')
 
-## TODO: 
-# - Thumbs fixen, almost there
-# - dubbelcheck of functie more niet vervangen kan worden door videos
 ####################################################################################################
 def Start():
 
@@ -118,22 +116,17 @@ def getVideo(teamid, speelronde, competitie, page=0):
 	else:
 		videourl = videourl + "&page=" + pageurl
 
-	more = HTML.ElementFromURL(videourl)
-	videos = HTTP.Request(videourl, cacheTime=0).content
-				
+	videos = HTTP.Request(videourl, cacheTime=CACHE_1HOUR).content
+
+	morepages = PAGES_REGEX.search(videos)
+	
 	titles = TITLES_REGEX.findall(videos)
-	#images = IMAGES_REGEX.findall(videos)
 	video_url = VIDEOURL_REGEX.findall(videos)
 	
 	for num in range(len(video_url)):
 		vid_url = stadionurl + video_url[num] 
 		vid_title = titles[num]
 		
-		## onderstaande niet bekend, check plex manual for wat er wel nog bij kan, zie ook todo
-		#summary = video.xpath('.//p[@class="description"]')[0].text
-		#date = video.xpath('.//date')[0].text
-		#date = Datetime.ParseDate(date).date()
-
 		oc.add(VideoClipObject(
 		url = vid_url,
 		title = vid_title,
@@ -144,7 +137,7 @@ def getVideo(teamid, speelronde, competitie, page=0):
 		return MessageContainer(L('NoVideo'))
 		
 	else:
-		if len(more.xpath('//li[@class="pager-next"]')) > 0:
+		if morepages:
 			oc.add(DirectoryObject(key=Callback(getVideo, teamid=teamid, speelronde=speelronde, competitie=competitie, page=page+1), title=L('More'), thumb=R(ICON_MORE)))
 	
 	return oc
