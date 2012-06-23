@@ -6,17 +6,13 @@ NAME 			= L('Title')
 stadionurl = 'http://stadion.vtm.be/'
 
 #REGEX's
-IMAGE_REGEX =  Regex('imageUrl: \"http:\\\/\\\/(.*?)"')
+IMAGE_REGEX =  Regex('imageUrl: \"(.*?)"')
 TITLES_REGEX = Regex('title: \'(.*?)\'')
-IMAGES_REGEX = Regex('class="videozone-item-image"><img src="(.*?)" alt=')
 VIDEOURL_REGEX = Regex('<a href="/(.*?)" class="videozone-item">')
 
 ## TODO: 
 # - Thumbs fixen, almost there
-# - cachtime increase nadat images shit gefixed is
-# - image regex zonder http maken zodat replace \/ ook die fixt, scheelt 1 regel code
 # - dubbelcheck of functie more niet vervangen kan worden door videos
-# - Check comments voor fixes
 ####################################################################################################
 def Start():
 
@@ -32,7 +28,7 @@ def Start():
 
 	VideoClipObject.thumb = R(ICON)
 
-	HTTP.CacheTime = None
+	HTTP.CacheTime = CACHE_1HOUR
 	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:8.0) Gecko/20100101 Firefox/8.0'
 
 ####################################################################################################
@@ -126,7 +122,7 @@ def getVideo(teamid, speelronde, competitie, page=0):
 	videos = HTTP.Request(videourl, cacheTime=0).content
 				
 	titles = TITLES_REGEX.findall(videos)
-	images = IMAGES_REGEX.findall(videos)
+	#images = IMAGES_REGEX.findall(videos)
 	video_url = VIDEOURL_REGEX.findall(videos)
 	
 	for num in range(len(video_url)):
@@ -156,15 +152,11 @@ def getVideo(teamid, speelronde, competitie, page=0):
 ####################################################################################################
 def GetThumb(url):
 	try:
-		page = HTTP.Request(url, cacheTime=None).content
+		page = HTTP.Request(url, cacheTime=CACHE_1HOUR).content
 		image_url = IMAGE_REGEX.findall(page)
 		image_url=image_url[0]
 		image_url = image_url.replace('\/', '/')
-		image_url="http://" + image_url
-		### Debugging moet nog uit
-		Log.Debug(image_url)
-		Log.Debug("plaatje")
-		image = HTTP.Request(image_url, cacheTime=None).content
+		image = HTTP.Request(image_url, cacheTime=CACHE_1HOUR).content
 		return DataObject(image, 'image/jpeg')
 	except:
 		Log(L('ImageError'))
