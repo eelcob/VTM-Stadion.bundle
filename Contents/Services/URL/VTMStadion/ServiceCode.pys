@@ -1,43 +1,56 @@
-CLIPS_REGEX =  Regex('videoUrl: \"http:\\\/\\\/(.*?)\"')
-WIDTH_REGEX =  Regex('width: ([0-9]+),')
-HEIGHT_REGEX =  Regex('height: ([0-9]+)')
+CLIPS_REGEX =  Regex('videoUrl: \"(.*?)\"')
 
 ####################################################################################################
 def MediaObjectsForURL(url):
-	page = HTTP.Request(url).content
-	
-	### UGLY!!! Needs fixing cause only 1 option needs to be returned here so perfect for string ugly with list.
-	video_url = CLIPS_REGEX.findall(page)
-	width = WIDTH_REGEX.findall(page)
-	height = HEIGHT_REGEX.findall(page)
-	video_url=video_url[0]
-	width=width[0]
-	height=height[0]
-	video_url="http://" + video_url
-
-	aspect = width + " / " + height
-
-	if video_url.endswith('.mp4'):
-		container = Container.MP4
-		aspect_ratio = aspect
-		audio_codec = AudioCodec.AAC
-		video_codec = VideoCodec.H264
-	else:
-		container = 'flv'
-		audio_codec = AudioCodec.MP3
-		video_codec = VideoCodec.H263
-		aspect_ratio = aspect
 
 	return [
 		MediaObject(
-		container = container,
-		audio_codec = audio_codec,
-		video_codec = video_codec,
-		aspect_ratio = aspect_ratio,
-		parts = [PartObject(key=video_url)]
+			audio_codec = AudioCodec.AAC,
+			video_codec = VideoCodec.H264,
+			container = 'Container.MP4',
+			video_resolution = 'sd',
+			optimized_for_streaming = True,
+			audio_channels = 2,
+			parts = [PartObject(key=Callback(PlayVideo, url=url))]
 		)
 	]
 		
 ####################################################################################################
 def NormalizeURL(url):
+
 	return url
+	
+####################################################################################################
+def PlayVideo(url):
+
+	page = HTTP.Request(url).content
+
+	video_url = CLIPS_REGEX.findall(page)
+	video_url=video_url[0]
+	video_url = video_url.replace('\\', '')
+
+	return Redirect(video_url)
+	
+####################################################################################################
+def MetadataObjectForURL(url):
+
+	content = HTML.ElementFromURL(url)
+
+	title = content.xpath('//meta[@property="og:title"]')[0].get('content')
+
+	try:
+		thumb = content.xpath('//meta[@property="og:image"]')[0].get('content')
+	except:
+		thumb = R('icon-default.png')
+	
+	try:
+		summary = content.xpath('//meta[@property="og:description"]')[0].get('content')
+	except:
+		summary = ""
+	
+	
+	return VideoClipObject(
+		title = title,
+		summary = summary,
+		thumb = thumb
+	)
