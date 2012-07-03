@@ -11,6 +11,9 @@ TITLES_REGEX = Regex('title: \'(.*?)\'')
 VIDEOURL_REGEX = Regex('<a href="/(.*?)" class="videozone-item">')
 PAGES_REGEX = Regex('<li class="pager-next"')
 
+## Todo
+# - Add test urls for URLservice
+
 ####################################################################################################
 def Start():
 
@@ -22,8 +25,6 @@ def Start():
 	ObjectContainer.view_group = 'List'
 	ObjectContainer.art = R(ART)
 	
-	DirectoryItem.thumb = R(ICON)
-
 	VideoClipObject.thumb = R(ICON)
 
 	HTTP.CacheTime = CACHE_1HOUR
@@ -54,7 +55,7 @@ def getClubs():
 			competitie=""
 			oc.add(DirectoryObject(key = Callback(getVideo, teamid=teamid, speelronde=speelronde, competitie=competitie), title=club))
 	except:
-		Log(L('WebError') + stadionurl)
+		Log.Exception(L('WebError') + stadionurl)
 
 	return oc
 
@@ -74,7 +75,7 @@ def getCompetitie():
 		
 			oc.add(DirectoryObject(key = Callback(getVideo, teamid=teamid, speelronde=speelronde, competitie=competitie), title=comp))
 	except:
-			Log(L('WebError') + stadionurl)
+			Log.Exception(L('WebError') + stadionurl)
 
 	return oc
 
@@ -95,7 +96,7 @@ def getSpeeldag():
 		
 			oc.add(DirectoryObject(key = Callback(getVideo, teamid=teamid, speelronde=speelronde, competitie=competitie), title=title))
 	except:
-			Log(L('WebError') + stadionurl)
+			Log.Exception(L('WebError') + stadionurl)
 
 	return oc
 
@@ -118,28 +119,32 @@ def getVideo(teamid, speelronde, competitie, page=0):
 
 	videos = HTTP.Request(videourl, cacheTime=CACHE_1HOUR).content
 
+# 	Commented out because this won't always work, when there is no thumb all thumbs will move to thumb + 1	
+#	data = HTML.ElementFromString(videos)
+	
 	morepages = PAGES_REGEX.search(videos)
 	
 	titles = TITLES_REGEX.findall(videos)
 	video_url = VIDEOURL_REGEX.findall(videos)
 	
 	for num in range(len(video_url)):
+		Log.Debug(video_url[num])
 		vid_url = stadionurl + video_url[num] 
 		vid_title = titles[num]
+		#imagetest = data.xpath('//div[@class="videozone-item-image"]/img')[num].get('src')
 		
 		oc.add(VideoClipObject(
 		url = vid_url,
 		title = vid_title,
 		thumb = Callback(GetThumb, url=vid_url)
 		))
-
-	if len(oc) == 0:
-		return MessageContainer(L('NoVideo'))
 		
+	if len(oc) == 0:
+		return MessageContainer(L('NoVideo'))	
 	else:
 		if morepages:
 			oc.add(DirectoryObject(key=Callback(getVideo, teamid=teamid, speelronde=speelronde, competitie=competitie, page=page+1), title=L('More'), thumb=R(ICON_MORE)))
-	
+
 	return oc
 	
 ####################################################################################################
@@ -152,5 +157,5 @@ def GetThumb(url):
 		image = HTTP.Request(image_url, cacheTime=CACHE_1HOUR).content
 		return DataObject(image, 'image/jpeg')
 	except:
-		Log(L('ImageError'))
 		return Redirect(R(ICON))
+		
